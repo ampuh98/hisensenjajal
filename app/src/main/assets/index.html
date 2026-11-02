@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hisense TV Launcher</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+    color: #ffffff;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    background: #0f172a;
+  }
+  .bg-layer {
+    position: absolute;
+    inset: -20px;
+    background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px) brightness(0.65);
+    transition: background-image 0.8s ease;
+    z-index: 1;
+  }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(10,15,25,0.35) 0%, rgba(10,15,25,0.75) 100%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px 64px;
+  }
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .greeting {
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 4px;
+  }
+  .clock {
+    font-size: 5.2rem;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -2px;
+    margin-bottom: 10px;
+  }
+  .date-str {
+    font-size: 1.15rem;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 6px;
+  }
+  .aqi-badge {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #f87171;
+    margin-bottom: 22px;
+  }
+  .prayer-bar {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+  }
+  .prayer-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+  .prayer-item.active {
+    background: rgba(255,255,255,0.16);
+    font-weight: 700;
+  }
+  .prayer-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.8);
+  }
+  .prayer-bottom {
+    font-size: 1.35rem;
+    font-weight: 500;
+    color: #fff;
+  }
+  .top-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(20, 24, 33, 0.72);
+    backdrop-filter: blur(12px);
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .pill-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.85);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  .pill-btn.active-tab {
+    background: #fde047;
+    color: #1e293b;
+    font-weight: 600;
+  }
+  .pill-btn:focus {
+    background: #ffffff;
+    color: #0f172a;
+    transform: scale(1.06);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.45);
+  }
+  .bottom-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .selected-app-title {
+    font-size: 2.1rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    min-height: 2.6rem;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.45);
+  }
+  .app-dock {
+    display: flex;
+    gap: 20px;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(16px);
+    padding: 18px 22px;
+    border-radius: 26px;
+    border: 1px solid rgba(255,255,255,0.16);
+    width: fit-content;
+  }
+  .app-card {
+    width: 175px;
+    height: 98px;
+    border-radius: 18px;
+    border: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .app-card:focus {
+    transform: scale(1.08);
+    border-color: #ffffff;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+    z-index: 5;
+  }
+  .card-yt { background: #f8fafc; color: #0f172a; }
+  .card-nf { background: #ffffff; color: #e50914; font-size: 1.55rem; letter-spacing: 1px; }
+  .card-tv { background: linear-gradient(135deg, #042f2e, #0f766e); color: #ffffff; }
+  .card-ytm { background: #f8fafc; color: #0f172a; }
+  .card-sp { background: #121212; color: #1ed760; }
+  .card-sftv { background: #1e293b; color: #38bdf8; }
+</style>
+</head>
+<body>
+  <div class="bg-layer" id="bgLayer"></div>
+  <div class="overlay">
+    <div class="top-row">
+      <div>
+        <div class="greeting" id="greeting">Selamat pagi</div>
+        <div class="clock" id="clock">05:44</div>
+        <div class="date-str" id="dateStr">Minggu, 25 Oktober</div>
+        <div class="aqi-badge" id="aqiBadge">Memuat AQI Banyuwangi...</div>
+        <div class="prayer-bar" id="prayerBar">
+          <div class="prayer-item" data-p="Fajr"><div class="prayer-top"><span>🌅</span><span>Subuh</span></div><div class="prayer-bottom" id="p-Fajr">04:11</div></div>
+          <div class="prayer-item" data-p="Dhuhr"><div class="prayer-top"><span>☀️</span><span>Zuhur</span></div><div class="prayer-bottom" id="p-Dhuhr">11:40</div></div>
+          <div class="prayer-item" data-p="Asr"><div class="prayer-top"><span>🌤️</span><span>Asar</span></div><div class="prayer-bottom" id="p-Asr">14:51</div></div>
+          <div class="prayer-item" data-p="Maghrib"><div class="prayer-top"><span>🌇</span><span>Maghrib</span></div><div class="prayer-bottom" id="p-Maghrib">17:48</div></div>
+          <div class="prayer-item" data-p="Isha"><div class="prayer-top"><span>🌙</span><span>Isya</span></div><div class="prayer-bottom" id="p-Isha">18:58</div></div>
+        </div>
+      </div>
+
+      <div class="top-pill">
+        <button class="pill-btn active-tab focusable" data-title="Beranda" onclick="changeBg()">🏠 Beranda</button>
+        <button class="pill-btn focusable" data-title="Input & Siaran TV" onclick="launchPkg('com.mediatek.wwtv.tvcenter')">📺 Input</button>
+        <button class="pill-btn focusable" data-title="Pengaturan Wi-Fi" onclick="location.href='app://wifi'">📶 Wi-Fi</button>
+        <button class="pill-btn focusable" data-title="Setelan Sistem TV" onclick="location.href='app://settings'">⚙️ Setelan</button>
+      </div>
+    </div>
+
+    <div class="bottom-section">
+      <div class="selected-app-title" id="appTitle">YouTube</div>
+      <div class="app-dock">
+        <button class="app-card card-yt focusable" data-title="YouTube" onclick="launchPkg('com.google.android.youtube.tv')">▶️ YouTube</button>
+        <button class="app-card card-nf focusable" data-title="Netflix" onclick="launchPkg('com.netflix.ninja')">NETFLIX</button>
+        <button class="app-card card-tv focusable" data-title="Stream TV Online" onclick="launchPkg('stream.tv.online')">📡 Stream TV</button>
+        <button class="app-card card-ytm focusable" data-title="YouTube Music" onclick="launchPkg('com.google.android.youtube.tvmusic')">🎵 YT Music</button>
+        <button class="app-card card-sp focusable" data-title="TV Digital / Live TV" onclick="launchPkg('com.mediatek.wwtv.tvcenter')">📺 Live TV</button>
+        <button class="app-card card-sftv focusable" data-title="Send Files to TV" onclick="launchPkg('com.yablio.sendfilestotv')">📂 Send Files</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const bgs = [
+    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80',
+    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=80',
+    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1920&q=80',
+    'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1920&q=80'
+  ];
+  let bgIdx = 0;
+  function changeBg() {
+    bgIdx = (bgIdx + 1) % bgs.length;
+    document.getElementById('bgLayer').style.backgroundImage = `url('${bgs[bgIdx]}')`;
+  }
+
+  function launchPkg(pkg) {
+    window.location.href = `intent://#Intent;package=${pkg};end`;
+  }
+
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('clock').textContent = `${h}:${m}`;
+
+    const hr = now.getHours();
+    let greet = 'Selamat malam';
+    if (hr >= 4 && hr < 11) greet = 'Selamat pagi';
+    else if (hr >= 11 && hr < 15) greet = 'Selamat siang';
+    else if (hr >= 15 && hr < 18) greet = 'Selamat sore';
+    document.getElementById('greeting').textContent = greet;
+
+    const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][now.getDay()];
+    const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][now.getMonth()];
+    document.getElementById('dateStr').textContent = `${hari}, ${now.getDate()} ${bulan}`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  async function fetchPrayerAndAqi() {
+    try {
+      // Koordinat default Banyuwangi (-8.2192, 114.3691)
+      const lat = -8.2192, lon = 114.3691;
+      const pRes = await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=20`);
+      const pData = await pRes.json();
+      if (pData && pData.data && pData.data.timings) {
+        const t = pData.data.timings;
+        ['Fajr','Dhuhr','Asr','Maghrib','Isha'].forEach(k => {
+          const el = document.getElementById('p-' + k);
+          if (el && t[k]) el.textContent = t[k].substring(0,5);
+        });
+      }
+      const aRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi`);
+      const aData = await aRes.json();
+      if (aData && aData.current && aData.current.us_aqi !== undefined) {
+        const aqi = aData.current.us_aqi;
+        const badge = document.getElementById('aqiBadge');
+        let label = 'Baik', color = '#4ade80';
+        if (aqi > 50 && aqi <= 100) { label = 'Sedang'; color = '#facc15'; }
+        else if (aqi > 100 && aqi <= 150) { label = 'Tidak sehat bagi kelompok sensitif'; color = '#fb923c'; }
+        else if (aqi > 150) { label = 'Tidak sehat'; color = '#f87171'; }
+        badge.textContent = `AQI ${aqi} ${label}`;
+        badge.style.color = color;
+      }
+    } catch (e) {}
+  }
+  fetchPrayerAndAqi();
+  setInterval(fetchPrayerAndAqi, 1800000);
+
+  // Navigasi D-Pad Remote TV
+  const focusables = Array.from(document.querySelectorAll('.focusable'));
+  focusables.forEach(el => {
+    el.addEventListener('focus', () => {
+      document.getElementById('appTitle').textContent = el.getAttribute('data-title') || '';
+    });
+  });
+  window.addEventListener('DOMContentLoaded', () => {
+    const firstApp = document.querySelector('.app-card');
+    if (firstApp) firstApp.focus();
+  });
+  window.addEventListener('keydown', (e) => {
+    const idx = focusables.indexOf(document.activeElement);
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      focusables[(idx + 1) % focusables.length].focus();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      focusables[(idx - 1 + focusables.length) % focusables.length].focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusables[0].focus();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusables[4].focus();
+    }
+  });
+</script>
+</body>
+</html>
